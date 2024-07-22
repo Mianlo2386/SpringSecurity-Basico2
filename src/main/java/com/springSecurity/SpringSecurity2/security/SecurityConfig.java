@@ -1,5 +1,6 @@
 package com.springSecurity.SpringSecurity2.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,13 +13,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
+//    public SecurityConfig(PasswordEncoder passwordEncoder) {
+//        this.passwordEncoder = passwordEncoder;
+//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -49,9 +51,11 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
+        String username = System.getenv("USERNAME_SECURITYDB");
+        String password = System.getenv("PASSWORD_SECURITYDB");
         return new InMemoryUserDetailsManager(
-                User.withUsername("cala")
-                        .password(passwordEncoder.encode("4884"))
+                User.withUsername(username)
+                        .password(passwordEncoder.encode(password))
                         .roles("USER")
                         .build()
         );
