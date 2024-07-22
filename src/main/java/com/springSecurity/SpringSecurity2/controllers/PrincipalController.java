@@ -8,6 +8,8 @@ import com.springSecurity.SpringSecurity2.requests.CreateUserDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 
 @RestController
 public class PrincipalController {
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
@@ -25,6 +29,7 @@ public class PrincipalController {
     }
     @GetMapping("/helloSecured")
     public String helloSecured(){
+        System.out.println("Acceso a helloSecured");
         return "Hello Gente Asegurado!!!";
     }
     @PostMapping("/createUser")
@@ -36,9 +41,10 @@ public class PrincipalController {
                         .build())
                 .collect(Collectors.toSet());
 
+
         UserEntity userEntity = UserEntity.builder()
                 .username(createUserDTO.getUsername())
-                .password(createUserDTO.getPassword())
+                .password(passwordEncoder.encode(createUserDTO.getPassword()))
                 .email(createUserDTO.getEmail())
                 .roles(roles)
                 .build();
