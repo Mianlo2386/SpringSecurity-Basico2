@@ -1,6 +1,7 @@
 package com.springSecurity.SpringSecurity2.security;
 
 import com.springSecurity.SpringSecurity2.security.filters.JwtAuthenticationFilter;
+import com.springSecurity.SpringSecurity2.security.filters.JwtAuthorizationFilter;
 import com.springSecurity.SpringSecurity2.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,14 +9,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -25,6 +29,8 @@ public class SecurityConfig {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    JwtAuthorizationFilter authorizationFilter;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -39,6 +45,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers("/hello").permitAll();
+                    //authorize.requestMatchers("/accessAdmin").hasAnyRole("ADMIN", "USER");EJEMPLO DE USO
                     authorize.anyRequest().authenticated();
                 })
                 .formLogin(formLogin -> formLogin
@@ -46,9 +53,11 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)//REVISAR CON STATELESS
                 )
-                .addFilter(jwtAuthenticationFilter);
+                .addFilter(jwtAuthenticationFilter)
+                .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
